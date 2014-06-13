@@ -1,0 +1,7 @@
+# C Crap
+*.o
+*.bin
+*.so
+*.lo
+*.a
+*.ii
