@@ -5,3 +5,13 @@
 *.lo
 *.a
 *.ii
+
+# Autotools crap
+*.ac
+*.in
+/configure
+/src/Makefile
+/Makefile
+/autom4te.cache/
+/config.log
+/config.status
