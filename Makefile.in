@@ -1,15 +1,19 @@
-package = ddtable
-version = 1.0
-tarname = $(package)
+# @configure_input@
+
+# Package-specific substitution variables
+package = @PACKAGE_NAME@
+version = @PACKAGE_VERSION@
+tarname = @PACKAGE_TARNAME@
 distdir = $(tarname)-$(version)
 
-prefix = /usr/local
-lib_prefix = $(prefix)
-libdir = $(lib_prefix)/lib
+# Prefix-specific subtitution variables
+prefix = @prefix@
+lib_prefix = @lib_prefix@
+libdir = @libdir@
 
-export prefix
-export lib_prefix
-export libdir
+# VPATH-specific variables
+srcdir = @srcdir@
+VPATH = @srcdir@
 
 all clean check install uninstall ddtable:
 	cd src && $(MAKE) $@
@@ -22,12 +26,15 @@ $(distdir).tar.gz: $(distdir)
 
 $(distdir): FORCE
 	mkdir -p $(distdir)/src
-	cp Makefile $(distdir)
-	cp src/Makefile $(distdir)/src
-	cp src/main.c $(distdir)/src
+	cp $(srcdir)/configure.ac $(distdir)
+	cp $(srcdir)/configure $(distdir)
+	cp $(srcdir)/Makefile $(distdir)
+	cp $(srcdir)/src/Makefile $(distdir)/src
+	cp $(srcdir)/src/main.c $(distdir)/src
 
 distcheck: $(distdir).tar.gz
 	gzip -cd $(distdir).tar.gz | tar xvf -
+	cd $(distdir) && ./configure
 	cd $(distdir) && $(MAKE) all
 	cd $(distdir) && $(MAKE) check
 	cd $(distdir) && $(MAKE) DESTDIR=$${PWD}/_inst install
@@ -35,6 +42,12 @@ distcheck: $(distdir).tar.gz
 	cd $(distdir) && $(MAKE) clean
 	rm -rf $(distdir)
 	@echo "*** Package $(distdir).tar.gz correctly assembled."
+
+Makefile: Makefile.in config.status
+	./config.status $@
+
+config.status: configure
+	./config.status --recheck
 
 FORCE:
 	-rm $(distdir).tar.gz >/dev/null 2>&1

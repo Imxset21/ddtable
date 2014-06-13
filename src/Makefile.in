@@ -1,3 +1,20 @@
+# @configure_input@
+
+# Package-specific substitution variables
+package = @PACKAGE_NAME@
+version = @PACKAGE_VERSION@
+tarname = @PACKAGE_TARNAME@
+distdir = $(tarname)-$(version)
+
+# Prefix-specific subtitution variables
+prefix = @prefix@
+lib_prefix = @lib_prefix@
+libdir = @libdir@
+
+# VPATH-related substituion variables
+srcdir = @srcdir@
+VPATH = @srcdir@
+
 CC := gcc
 CFLAGS ?= -std=c99 -O0 -Wall -Wextra -Wpedantic -g3 -fPIC
 CPPFLAGS ?= 
@@ -14,6 +31,12 @@ BINARY := ddtable_test.bin
 LIB := libddtable.so
 
 .PHONY: all build rebuild clean run ctags check install uninstall
+
+Makefile: Makefile.in ../config.status
+	cd .. && ./config.status src/$@
+
+./config.status: ../configure
+	cd .. && ./config.status --recheck
 
 all: build
 
