@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "ddtable.h"
+#include <libddtable.h>
 
 int main()
 {

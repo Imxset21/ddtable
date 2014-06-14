@@ -1,5 +1,5 @@
-#ifndef DDTABLE_H
-#define DDTABLE_H
+#ifndef LIBDDTABLE_H_INCLUDED
+#define LIBDDTABLE_H_INCLUDED
 
 #include <stdint.h>
 

@@ -5,8 +5,11 @@
 *.lo
 *.a
 *.ii
+*.la
+*.lo
 
 # Autotools crap
+*.in
 # /configure
 # /src/Makefile
 # /Makefile

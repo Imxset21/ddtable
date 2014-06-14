@@ -3,16 +3,23 @@
 
 AC_PREREQ([2.69])
 AC_INIT([ddtable], [1.0], [pr273@cornell.edu])
-AC_CONFIG_SRCDIR([src/ddtable.c])
+AM_INIT_AUTOMAKE
+LT_PREREQ([2.2])
+LT_INIT([dlopen])
+AC_CONFIG_SRCDIR([src/ddtable_test.c]) 
 AC_CONFIG_HEADERS([config.h])
 
+AC_CONFIG_MACRO_DIR([m4])
+
 # Checks for programs.
-AC_PROG_CXX
+AC_LANG([C])
 AC_PROG_CC([gcc llvm cc])
+AC_PROG_CC_C_O
+# AC_PROG_RANLIB - Not needed since we're using libtool
 AC_PROG_INSTALL
 
 # Sets flags
-CFLAGS="-std=c99 -O3 -Wall -Wextra -Wpedantic -fPIC"
+CFLAGS="-std=c99 -O3 -Wall -Wextra -Wpedantic"
 
 # Checks for libraries.
 
@@ -32,5 +39,8 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset memcmp])
 
 AC_CONFIG_FILES([Makefile
+                 common/Makefile
+                 include/Makefile
+                 libddtable/Makefile
                  src/Makefile])
 AC_OUTPUT

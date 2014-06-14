@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <libddtable.h>
+#include <spooky-c.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -12,9 +15,6 @@
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-
-#include "ddtable.h"
-#include "spooky-c.h"
 
 //! Default NULL value (not a value) for our table
 #define DDTABLE_NULL_VAL 0xdeadbeef
