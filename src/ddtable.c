@@ -6,7 +6,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+
+#if HAVE_STDINT_H
+#include <stdint.h>
+#elif HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
 
 #include "ddtable.h"
 #include "spooky-c.h"

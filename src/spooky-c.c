@@ -15,7 +15,13 @@
 #include <config.h>
 #endif
 
-#include <memory.h>
+#include <string.h>
+
+#if HAVE_STDINT_H
+#include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 
 #include "spooky-c.h"
 

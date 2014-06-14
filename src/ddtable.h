@@ -1,7 +1,7 @@
 #ifndef DDTABLE_H
 #define DDTABLE_H
 
-#include <inttypes.h>
+#include <stdint.h>
 
 //! Hash table for double-valued key-value pairs.
 typedef struct ddtable
