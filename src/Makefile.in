@@ -18,7 +18,7 @@ VPATH = @srcdir@
 CC := gcc
 CFLAGS ?= -std=c99 -O0 -Wall -Wextra -Wpedantic -g3 -fPIC
 CPPFLAGS ?= 
-LDFLAGS ?= 
+LDFLAGS ?= -L. -L$(srcdir) -L.. -lddtable
 DEFINES ?= 
 INCLUDES ?= -I. -I$(srcdir) -I.. # Order matters
 
@@ -40,7 +40,7 @@ Makefile: Makefile.in ../config.status
 
 all: build
 
-build: $(BINARY) $(LIB)
+build: $(LIB) $(BINARY)
 
 clean:
 	$(RM) $(OBJECTS) $(LIB) $(BINARY)
@@ -50,7 +50,7 @@ rebuild: clean build
 $(OBJECTS): %.o : %.c
 	$(CC) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(DEFINES) -o $@ -c $<
 
-$(BINARY): $(OBJECTS)
+$(BINARY): $(BINARY:%.bin=%.o) $(LIB)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 $(LIB): $(OBJECTS)
