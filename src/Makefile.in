@@ -15,16 +15,24 @@ libdir = @libdir@
 srcdir = @srcdir@
 VPATH = @srcdir@
 
+# Tool-specific substitution variables
 CC := gcc
-CFLAGS ?= -std=c99 -O0 -Wall -Wextra -Wpedantic -g3 -fPIC
-CPPFLAGS ?= 
-LDFLAGS ?= -L. -L$(srcdir) -L.. -lddtable
-DEFINES ?= 
+DEFS = @DEFS@
+LIBS = @LIBS@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS ?= -L. -L$(srcdir) -L.. -lddtable $(LIBS)
 INCLUDES ?= -I. -I$(srcdir) -I.. # Order matters
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
 
 # Ctags flags
 CTAGS_FLAGS := -e -f TAGS --verbose -R --exclude=doc --langmap=c:.c.h --fields="+afikKlmnsSzt"
 
+# Build targets and objects
 SOURCES := ddtable.c spooky-c.c ddtable_test.c
 OBJECTS = $(SOURCES:%.c=%.o)
 BINARY := ddtable_test.bin
@@ -48,7 +56,7 @@ clean:
 rebuild: clean build
 
 $(OBJECTS): %.o : %.c
-	$(CC) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(DEFINES) -o $@ -c $<
+	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) $(INCLUDES) -o $@ -c $<
 
 $(BINARY): $(BINARY:%.bin=%.o) $(LIB)
 	$(CC) $^ -o $@ $(LDFLAGS)
@@ -64,8 +72,8 @@ check: all
 	@echo "*** ALL TESTS PASSED ***"
 
 install: $(LIB)
-	install -d $(DESTDIR)$(libdir)
-	install -m 0755 $(DESTDIR)$(LIB) $(libdir)
+	$(INSTALL) -d $(DESTDIR)$(libdir)
+	$(INSTALL_PROGRAM) -m 0755 $(DESTDIR)$(LIB) $(libdir)
 
 uninstall:
 	-rm $(DESTDIR)$(libdir)/$(LIB)
