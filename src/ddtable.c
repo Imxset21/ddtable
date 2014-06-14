@@ -1,3 +1,7 @@
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -7,6 +11,18 @@
 #include "ddtable.h"
 #include "spooky-c.h"
 
+//! Default NULL value (not a value) for our table
+#define DDTABLE_NULL_VAL 0xdeadbeef
+
+//! Checks if x is a power of 2
+#define IS_POW2(x) ((x != 0) && ((x & (~x + 1)) == x))
+
+//! Enforces size must be power of 2 minus 1 (i.e. use & instead of %)
+#ifndef DDTABLE_ENFORCE_POW2
+#define DDTABLE_ENFORCE_POW2 1
+#endif
+
+//! Sets the seed we pass to spooky
 #ifndef SPOOKY_HASH_SEED
 #define SPOOKY_HASH_SEED 0
 #endif

@@ -1,19 +1,7 @@
 #ifndef DDTABLE_H
 #define DDTABLE_H
 
-#include <stdlib.h>
 #include <inttypes.h>
-
-//! Default NULL value (not a value) for our table
-#define DDTABLE_NULL_VAL 0xdeadbeef
-
-//! Checks if x is a power of 2
-#define IS_POW2(x) ((x != 0) && ((x & (~x + 1)) == x))
-
-//! Enforces size must be power of 2 minus 1 (i.e. use & instead of %)
-#ifndef DDTABLE_ENFORCE_POW2
-#define DDTABLE_ENFORCE_POW2 1
-#endif
 
 //! Hash table for double-valued key-value pairs.
 typedef struct ddtable

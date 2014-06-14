@@ -11,6 +11,10 @@
 
 //   Assumes little endian ness. Caller has to check this case.
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <memory.h>
 
 #include "spooky-c.h"

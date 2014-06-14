@@ -20,7 +20,7 @@ CFLAGS ?= -std=c99 -O0 -Wall -Wextra -Wpedantic -g3 -fPIC
 CPPFLAGS ?= 
 LDFLAGS ?= 
 DEFINES ?= 
-INCLUDES ?= -I.
+INCLUDES ?= -I. -I$(srcdir) -I.. # Order matters
 
 # Ctags flags
 CTAGS_FLAGS := -e -f TAGS --verbose -R --exclude=doc --langmap=c:.c.h --fields="+afikKlmnsSzt"
@@ -48,7 +48,7 @@ clean:
 rebuild: clean build
 
 $(OBJECTS): %.o : %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(DEFINES) -o $@ -c $<
+	$(CC) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(DEFINES) -o $@ -c $<
 
 $(BINARY): $(OBJECTS)
 	$(CC) $^ -o $@ $(LDFLAGS)
