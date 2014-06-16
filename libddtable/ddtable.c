@@ -2,13 +2,17 @@
 #include <config.h>
 #endif
 
-#include <libddtable.h>
-
 #ifndef __clang__
+// For primary build (I use only gcc for production)
+#include <libddtable.h>
 #include <spooky-c.h>
+
 #else
+// For Flycheck (which uses clang)
+#include "../include/libddtable.h"
 #include "../common/spooky-c.h"
 #define HAVE_STDINT_H 1
+
 #endif
 
 #include <stdio.h>
@@ -24,9 +28,6 @@
 #error libddtable requires a definition of uint64_t
 #endif
 
-//! Default NULL value (not a value) for our table
-#define DDTABLE_NULL_VAL 0xdeadbeef
-
 //! Checks if x is a power of 2
 #define IS_POW2(x) ((x != 0) && ((x & (~x + 1)) == x))
 
@@ -40,8 +41,17 @@
 #define SPOOKY_HASH_SEED 0
 #endif
 
+typedef struct ddtable
+{
+    uint64_t num_kv_pairs;     //! Absolute number of key-value pairs
+    uint64_t size;             //! Internal size used for hashing
+    char* restrict exists;     //! Fast-checker for key existence
+    double* restrict key_vals; //! Single-alloc array for kv pairs
+
+} ddtable;
 
 // TODO: Support other hash functions?
+
 //! Hash function using spooky 64-bit hash
 static inline uint64_t dd_hash(const double key, const uint64_t size)
 {
@@ -54,7 +64,7 @@ static inline uint64_t dd_hash(const double key, const uint64_t size)
 }
 
 //! Gets the next power of two from the given number (e.g. 30 -> 32)
-static uint64_t nextPowerOf2(uint64_t n)
+static inline uint64_t nextPowerOf2(uint64_t n)
 {
     n--;
     n |= n >> 1;
@@ -111,7 +121,7 @@ void free_ddtable(ddtable_t ddtable)
     }
 }
 
-double get_val(ddtable_t ddtable, const double key)
+double ddtable_get_val(ddtable_t ddtable, const double key)
 {
     const uint64_t indx = dd_hash(key, ddtable->size);
 
@@ -119,7 +129,7 @@ double get_val(ddtable_t ddtable, const double key)
         ddtable->key_vals[(2*indx)+1] : (double) DDTABLE_NULL_VAL;
 }
 
-double get_check_key(ddtable_t ddtable, const double key)
+double ddtable_get_val_key(ddtable_t ddtable, const double key)
 {
     const uint64_t indx = dd_hash(key, ddtable->size);
 
@@ -130,11 +140,11 @@ double get_check_key(ddtable_t ddtable, const double key)
         ? ddtable->key_vals[(2*indx)+1] : (double) DDTABLE_NULL_VAL;
 }
 
-int set_val(ddtable_t ddtable, const double key, const double val)
+int ddtable_set_val(ddtable_t ddtable, const double key, const double val)
 {
     const uint64_t indx = dd_hash(key, ddtable->size);
 
-    if(ddtable->exists[indx])
+    if (ddtable->exists[indx])
     {
         return 1; // Collision
     } else {
@@ -143,4 +153,15 @@ int set_val(ddtable_t ddtable, const double key, const double val)
         ddtable->key_vals[(2*indx)+1] = val;
         return 0;
     }
+}
+
+void ddtable_update_val(ddtable_t ddtable, const double key, const double val)
+{
+    const uint64_t indx = dd_hash(key, ddtable->size);
+
+    ddtable->exists[indx] = '1';
+    ddtable->key_vals[2*indx] = key;
+    ddtable->key_vals[(2*indx)+1] = val;
+
+    return;
 }
