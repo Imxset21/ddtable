@@ -3,7 +3,13 @@
 #endif
 
 #include <libddtable.h>
+
+#ifndef __clang__
 #include <spooky-c.h>
+#else
+#include "../common/spooky-c.h"
+#define HAVE_STDINT_H 1
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +20,8 @@
 #include <stdint.h>
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
+#else
+#error libddtable requires a definition of uint64_t
 #endif
 
 //! Default NULL value (not a value) for our table
@@ -37,8 +45,8 @@
 //! Hash function using spooky 64-bit hash
 static inline uint64_t dd_hash(const double key, const uint64_t size)
 {
-    #if DDTABLE_ENFORCE_POW2
     // Can use faster & instead of % if we enforce power of 2 size.
+    #if DDTABLE_ENFORCE_POW2
     return spooky_hash64(&key, sizeof(double), SPOOKY_HASH_SEED) & size;
     #else
     return spooky_hash64(&key, sizeof(double), SPOOKY_HASH_SEED) % size;
