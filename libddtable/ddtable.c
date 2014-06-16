@@ -129,7 +129,7 @@ double ddtable_get_val(ddtable_t ddtable, const double key)
         ddtable->key_vals[(2*indx)+1] : (double) DDTABLE_NULL_VAL;
 }
 
-double ddtable_get_val_key(ddtable_t ddtable, const double key)
+double ddtable_get_val_check_key(ddtable_t ddtable, const double key)
 {
     const uint64_t indx = dd_hash(key, ddtable->size);
 
