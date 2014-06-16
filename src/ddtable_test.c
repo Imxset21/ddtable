@@ -1,3 +1,7 @@
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -12,10 +16,6 @@
 #ifndef NUM_KEYS
 #define NUM_KEYS 1000
 #endif
-
-#ifdef HAVE_RANDOM_H
-
-#if HAVE_RANDOM_H == 1
 
 #ifndef D_MIN
 #define D_MIN 0.0
@@ -93,6 +93,9 @@ int rand_test_ddtable()
 
 #ifdef HAVE_MATH_H
 #if HAVE_MATH_H == 1
+
+#include <math.h>
+
 int exp_test_ddtable()
 {
     double* restrict random_key_sample = gen_random_nums(10);
@@ -129,13 +132,10 @@ int exp_test_ddtable()
 
     printf("Misses to hits: %u vs %u\n", num_misses, num_hits);
 
-    return EXIT_SUCCESS;
+    return 1;
 }
 #endif //if HAVE_MATH_H == 1
 #endif //ifdef HAVE_MATH_H
-
-#endif //if HAVE_RANDOM_H == 1
-#endif //ifdef HAVE_RANDOM_H
 
 static int nonrand_test_ddtable()
 {
@@ -170,6 +170,12 @@ int main()
 
     all_checks = all_checks && check_creation();
     all_checks = all_checks && nonrand_test_ddtable();
+
+    #ifdef HAVE_MATH_H
+    #if HAVE_MATH_H == 1
+    all_checks = all_checks && exp_test_ddtable();
+    #endif
+    #endif
 
     return (all_checks) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
