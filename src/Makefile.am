@@ -1,7 +1,7 @@
 bin_PROGRAMS = ddtable_test
 ddtable_test_SOURCES = ddtable_test.c
 ddtable_test_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/include
-ddtable_test_LDADD = ../libddtable/libddtable.la ../common/libspookyc.la
+ddtable_test_LDADD = ../libddtable/libddtable.la ../common/libddtablehashes.la
 
 check_SCRIPTS = unittest.sh
 TESTS = $(check_SCRIPTS)
