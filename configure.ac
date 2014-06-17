@@ -6,7 +6,7 @@ AC_INIT([ddtable], [1.0], [pr273@cornell.edu])
 AM_INIT_AUTOMAKE
 LT_PREREQ([2.2])
 LT_INIT([dlopen])
-AC_CONFIG_SRCDIR([src/ddtable_test.c]) 
+AC_CONFIG_SRCDIR([src/test_ddtable_create.c]) 
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_MACRO_DIR([m4])

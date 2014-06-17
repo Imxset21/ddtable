@@ -161,21 +161,10 @@ static int check_creation()
     ddtable_t ddtable = new_ddtable(100);
     free_ddtable(ddtable);
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 int main()
 {
-    int all_checks = 1;
-
-    all_checks = all_checks && check_creation();
-    all_checks = all_checks && nonrand_test_ddtable();
-
-    #ifdef HAVE_MATH_H
-    #if HAVE_MATH_H == 1
-    all_checks = all_checks && exp_test_ddtable();
-    #endif
-    #endif
-
-    return (all_checks) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return check_creation();
 }

@@ -1,13 +1,15 @@
-bin_PROGRAMS = ddtable_test
-ddtable_test_SOURCES = ddtable_test.c
-ddtable_test_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/include
-ddtable_test_LDADD = ../libddtable/libddtable.la ../common/libddtablehashes.la
+bin_PROGRAMS = test_ddtable_create.bin
 
-check_SCRIPTS = unittest.sh
+# Testing table creation & deletion
+test_ddtable_create_bin_SOURCES = test_ddtable_create.c
+test_ddtable_create_bin_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/include
+test_ddtable_create_bin_LDADD = ../libddtable/libddtable.la ../common/libddtablehashes.la
+
+check_SCRIPTS = test_ddtable_create.sh
 TESTS = $(check_SCRIPTS)
 
-unittest.sh:
-	echo './ddtable_test == 0' > unittest.sh
-	chmod +x unittest.sh
+$(check_SCRIPTS): %.sh : %.bin
+	echo './$< == 0' > $@
+	chmod +x $@
 
-CLEANFILES = unittest.sh
+CLEANFILES = $(check_SCRIPTS)
