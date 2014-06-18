@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 //TODO: Use autocomplete to make rand.h an requirement for check
 
@@ -59,7 +60,7 @@ int rand_test_ddtable()
     double* keys = gen_random_nums(NUM_KEYS);
     double* vals = gen_random_nums(NUM_KEYS);
 
-    ddtable_t my_table = new_ddtable(NUM_KEYS*20);
+    ddtable_t my_table = new_ddtable(NUM_KEYS*20, DDTABLE_SUM_HASH);
 
     // Used to prevent ifs from being optimized out
     int num_errors = 0;
@@ -102,7 +103,7 @@ int exp_test_ddtable()
     double* restrict keys =  sample_rand_nums(100, random_key_sample, 10);
     double* restrict vals = (double*) calloc(NUM_KEYS, sizeof(double));
     
-    ddtable_t ddtable = new_ddtable(NUM_KEYS*10);
+    ddtable_t ddtable = new_ddtable(NUM_KEYS*10, DDTABLE_SPOOKY_HASH);
 
     unsigned int num_hits = 0;
     unsigned int num_misses = 0;
@@ -139,7 +140,7 @@ int exp_test_ddtable()
 
 static int nonrand_test_ddtable()
 {
-    ddtable_t my_table = new_ddtable(10);
+    ddtable_t my_table = new_ddtable(10, DDTABLE_SPOOKY_HASH);
 
     const unsigned int num_vals = 4;
     double vals[4] = {4.5, 5.5, 1.0, 22.23};
@@ -152,13 +153,28 @@ static int nonrand_test_ddtable()
 
     printf("Get val for key %f: %f\n", keys[1], ddtable_get_val(my_table, keys[1]));
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
+#ifndef NUM_KEYS
+#define NUM_KEYS 100
+#endif
 
 static int check_creation()
 {
-    ddtable_t ddtable = new_ddtable(100);
+    // Test creation with DDTABLE_SPOOKY_HASH
+    ddtable_t ddtable = new_ddtable(NUM_KEYS, DDTABLE_SUM_HASH);
+    assert(ddtable != NULL);
+    free_ddtable(ddtable);
+
+    // Test creation with DDTABLE_SPOOKY_HASH
+    ddtable = new_ddtable(NUM_KEYS, DDTABLE_SPOOKY_HASH);
+    assert(ddtable != NULL);
+    free_ddtable(ddtable);
+
+    // Test creation with DDTABLE_MUMUR3_HASH
+    ddtable = new_ddtable(NUM_KEYS, DDTABLE_MURMUR3_HASH);
+    assert(ddtable != NULL);
     free_ddtable(ddtable);
 
     return EXIT_SUCCESS;
@@ -166,5 +182,13 @@ static int check_creation()
 
 int main()
 {
-    return check_creation();
+    if (check_creation() == EXIT_FAILURE)
+    {
+        return EXIT_FAILURE;
+    }
+    if (nonrand_test_ddtable() == EXIT_FAILURE)
+    {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

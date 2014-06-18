@@ -11,14 +11,23 @@
 //! Hash table for double-valued key-value pairs.
 typedef struct ddtable *ddtable_t;
 
+//! Supported hash function types
+enum ddtable_hash_fxn 
+{
+    DDTABLE_SUM_HASH,    //! Simplest, fastest hash; most collisions.
+    DDTABLE_SPOOKY_HASH, //! Fast hash with low collisions.
+    DDTABLE_MURMUR3_HASH //! Fast hash with low collisions.
+};
+
 /**
-   Allocates and initializes a new ddtable in memory.
+   Initializes a new ddtable with given hash function.
 
    @param[in] num_keys Number of initial keys.
+   @param[in] fxn_type Type of hash function to use.
    
    @returns new ddtable
  */
-extern ddtable_t new_ddtable(const uint64_t num_keys);
+extern ddtable_t new_ddtable(const uint64_t num_keys, enum ddtable_hash_fxn fxn_type);
 
 /**
    Deletes an existing ddtable.

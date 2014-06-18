@@ -6,14 +6,14 @@
 // For primary build (I use only gcc for production)
 #include <libddtable.h>
 #include <spooky-c.h>
-
+#include <MurmurHash3.h>
 #else
 // For Flycheck (which uses clang)
 #include "../include/libddtable.h"
 #include "../common/spooky-c.h"
+#include "../common/MurmurHash3.h"
 #define HAVE_STDINT_H 1
-
-#endif
+#endif // __clang__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,30 +36,64 @@
 #define DDTABLE_ENFORCE_POW2 1
 #endif
 
-//! Sets the seed we pass to spooky
+//! Seed we pass to spooky
 #ifndef SPOOKY_HASH_SEED
 #define SPOOKY_HASH_SEED 0
 #endif
 
+//! Seed we pass to MurmurHash3
+#ifndef MURMUR_HASH_3_SEED
+#define MURMUR_HASH_3_SEED 0
+#endif
+
+//! Internal hash function pointer type.
+typedef uint64_t (*ddtable_hash_fxn_t) (const double, const uint64_t);
+
+//! Internal definition of forward declaration from header
 typedef struct ddtable
 {
     uint64_t num_kv_pairs;     //! Absolute number of key-value pairs
     uint64_t size;             //! Internal size used for hashing
+    ddtable_hash_fxn_t my_fxn; //! Function to use for hashing
     char* restrict exists;     //! Fast-checker for key existence
     double* restrict key_vals; //! Single-alloc array for kv pairs
 
 } ddtable;
 
-// TODO: Support other hash functions?
+
+static uint64_t ddtable_murmur3_hash(const double key, const uint64_t size)
+{
+    uint64_t indx = 0; //
+    const uint64_t _key = key;
+    MurmurHash3_x64_128(&_key, sizeof(double), MURMUR_HASH_3_SEED, &indx); 
+
+    // Can use faster & instead of % if we enforce power of 2 size.
+    #if DDTABLE_ENFORCE_POW2
+    return indx & size;
+    #else
+    return indx % size;
+    #endif    
+}
 
 //! Hash function using spooky 64-bit hash
-static inline uint64_t dd_hash(const double key, const uint64_t size)
+static uint64_t ddtable_spooky_hash(const double key, const uint64_t size)
 {
     // Can use faster & instead of % if we enforce power of 2 size.
     #if DDTABLE_ENFORCE_POW2
     return spooky_hash64(&key, sizeof(double), SPOOKY_HASH_SEED) & size;
     #else
     return spooky_hash64(&key, sizeof(double), SPOOKY_HASH_SEED) % size;
+    #endif
+}
+
+//TODO: Actually make this do an add
+static uint64_t ddtable_add_hash(const double key, const uint64_t size)
+{
+    // Can use faster & instead of % if we enforce power of 2 size.
+    #if DDTABLE_ENFORCE_POW2
+    return ((uint64_t) key) & size;
+    #else
+    return ((uint64_t) key) % size;
     #endif
 }
 
@@ -77,7 +111,7 @@ static inline uint64_t nextPowerOf2(uint64_t n)
     return n;
 }
 
-ddtable_t new_ddtable(const uint64_t num_keys)
+ddtable_t new_ddtable(const uint64_t num_keys, enum ddtable_hash_fxn fxn_type)
 {
     ddtable_t new_ht = (ddtable_t) malloc(sizeof(struct ddtable));
     assert(new_ht);
@@ -93,6 +127,27 @@ ddtable_t new_ddtable(const uint64_t num_keys)
     new_ht->num_kv_pairs = num_keys;
     new_ht->size = num_keys;
     #endif
+
+    // Choose our function
+    switch (fxn_type)
+    {
+        case DDTABLE_SUM_HASH:
+        {
+            new_ht->my_fxn = &ddtable_add_hash;
+            break;
+        }
+        case DDTABLE_MURMUR3_HASH:
+        {
+            new_ht->my_fxn = &ddtable_murmur3_hash;
+            break;
+        }
+        // Spooky is default
+        default:
+        case DDTABLE_SPOOKY_HASH:
+        {
+             new_ht->my_fxn = &ddtable_spooky_hash;
+        }
+    }
 
     // Allocate space for key-value store and existance arrays.
     new_ht->key_vals = (double*) calloc(new_ht->num_kv_pairs*2, sizeof(double));
@@ -123,7 +178,7 @@ void free_ddtable(ddtable_t ddtable)
 
 double ddtable_get_val(ddtable_t ddtable, const double key)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint64_t indx = ddtable->my_fxn(key, ddtable->size);
 
     return (ddtable->exists[indx]) ? 
         ddtable->key_vals[(2*indx)+1] : (double) DDTABLE_NULL_VAL;
@@ -131,7 +186,7 @@ double ddtable_get_val(ddtable_t ddtable, const double key)
 
 double ddtable_get_val_check_key(ddtable_t ddtable, const double key)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint64_t indx = ddtable->my_fxn(key, ddtable->size);
 
     // If the key exists AND it's memcmp-identical to the given one,
     // then return the value. Otherwise, return DDTABLE_NULL_VAL
@@ -142,7 +197,7 @@ double ddtable_get_val_check_key(ddtable_t ddtable, const double key)
 
 int ddtable_set_val(ddtable_t ddtable, const double key, const double val)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint64_t indx = ddtable->my_fxn(key, ddtable->size);
 
     if (ddtable->exists[indx])
     {
@@ -157,7 +212,7 @@ int ddtable_set_val(ddtable_t ddtable, const double key, const double val)
 
 void ddtable_update_val(ddtable_t ddtable, const double key, const double val)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint64_t indx = ddtable->my_fxn(key, ddtable->size);
 
     ddtable->exists[indx] = '1';
     ddtable->key_vals[2*indx] = key;

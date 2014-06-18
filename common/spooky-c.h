@@ -79,6 +79,7 @@ void spooky_hash128
 	uint64_t *hash2
 );
 
+//TODO: Write a version of spooky_hash64 for fixed-length 64-byte messages
 uint64_t spooky_hash64
 (
 	const void *message,
