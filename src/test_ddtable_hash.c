@@ -87,7 +87,9 @@ int rand_test_ddtable()
     double* vals = gen_random_nums(NUM_KEYS);
 
     // Create hash tables using different functions
-    ddtable_t curr_hash_table = new_ddtable(cache_size, DDTABLE_SUM_HASH);
+    ddtable_t curr_hash_table = NULL;
+
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_SUM_HASH);
     puts("Stats for sum hash table:");
     test_rand_hash(curr_hash_table, keys, vals);
 
