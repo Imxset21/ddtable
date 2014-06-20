@@ -177,6 +177,11 @@ static int check_creation()
     assert(ddtable != NULL);
     free_ddtable(ddtable);
 
+    // Test creation with DDTABLE_MUMUR3_HASH
+    ddtable = new_ddtable(NUM_KEYS, DDTABLE_XX_HASH);
+    assert(ddtable != NULL);
+    free_ddtable(ddtable);    
+
     return EXIT_SUCCESS;
 }
 

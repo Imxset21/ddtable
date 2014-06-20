@@ -98,6 +98,10 @@ int rand_test_ddtable()
     curr_hash_table = new_ddtable(cache_size, DDTABLE_MURMUR3_HASH);
     puts("Stats for Murmur3 hash table:");
     test_rand_hash(curr_hash_table, keys, vals);
+
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_XX_HASH);
+    puts("Stats for XX hash table:");
+    test_rand_hash(curr_hash_table, keys, vals);
     
     // Cleanup
     free(keys);

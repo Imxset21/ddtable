@@ -48,6 +48,12 @@
 #define MURMUR_HASH_3_SEED 0
 #endif
 
+//! Seed we pass to MurmurHash3
+#ifndef XX_HASH_SEED
+#define XX_HASH_SEED 0
+#endif
+
+
 //! Internal hash function pointer type.
 typedef uint64_t (*ddtable_hash_fxn_t) (const double, const uint64_t);
 
@@ -61,6 +67,22 @@ typedef struct ddtable
     double* restrict key_vals; //! Single-alloc array for kv pairs
 
 } ddtable;
+
+//! Hash function using XXHash32
+static uint64_t ddtable_xxhash32_hash(const double key, const uint64_t size)
+{
+    const double _key = key;
+    uint32_t* msg = (uint32_t*) &_key;
+    uint64_t indx = XXH32(&msg[0], sizeof(uint32_t), XX_HASH_SEED);
+    indx += XXH32(&msg[1], sizeof(uint32_t), XX_HASH_SEED);
+
+    // Can use faster & instead of % if we enforce power of 2 size.
+    #if DDTABLE_ENFORCE_POW2
+    return indx & size;
+    #else
+    return indx % size;
+    #endif        
+}
 
 //! Hash function using Murmur3 128-bit hash (x64 version)
 static uint64_t ddtable_murmur3_hash(const double key, const uint64_t size)
@@ -141,6 +163,11 @@ ddtable_t new_ddtable(const uint64_t num_keys, enum ddtable_hash_fxn fxn_type)
         case DDTABLE_MURMUR3_HASH:
         {
             new_ht->my_fxn = &ddtable_murmur3_hash;
+            break;
+        }
+        case DDTABLE_XX_HASH:
+        {
+            new_ht->my_fxn = &ddtable_xxhash32_hash;
             break;
         }
         // Spooky is default

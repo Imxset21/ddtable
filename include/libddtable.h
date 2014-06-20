@@ -14,9 +14,10 @@ typedef struct ddtable *ddtable_t;
 //! Supported hash function types
 enum ddtable_hash_fxn 
 {
-    DDTABLE_SUM_HASH,    //! Simplest, fastest hash; most collisions.
-    DDTABLE_SPOOKY_HASH, //! Fast hash with low collisions.
-    DDTABLE_MURMUR3_HASH //! Fast hash with low collisions.
+    DDTABLE_SUM_HASH,     //! Worst hash possible.
+    DDTABLE_SPOOKY_HASH,  //! Fast hash with low collisions.
+    DDTABLE_MURMUR3_HASH, //! Fast hash with low collisions.
+    DDTABLE_XX_HASH       //! Fastest hash with low collissions.
 };
 
 /**
