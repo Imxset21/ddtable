@@ -7,11 +7,13 @@
 #include <libddtable.h>
 #include <spooky-c.h>
 #include <MurmurHash3.h>
+#include <xxhash.h>
 #else
 // For Flycheck (which uses clang)
 #include "../include/libddtable.h"
 #include "../common/spooky-c.h"
 #include "../common/MurmurHash3.h"
+#include "../common/xxhash.h"
 #define HAVE_STDINT_H 1
 #endif // __clang__
 
@@ -60,11 +62,11 @@ typedef struct ddtable
 
 } ddtable;
 
-
+//! Hash function using Murmur3 128-bit hash (x64 version)
 static uint64_t ddtable_murmur3_hash(const double key, const uint64_t size)
 {
     uint64_t indx = 0; //
-    const uint64_t _key = key;
+    const double _key = key;
     MurmurHash3_x64_128(&_key, sizeof(double), MURMUR_HASH_3_SEED, &indx); 
 
     // Can use faster & instead of % if we enforce power of 2 size.
