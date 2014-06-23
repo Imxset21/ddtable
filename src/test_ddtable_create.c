@@ -26,14 +26,17 @@
 #define D_MAX 1.0
 #endif
 
-#define randd() D_MIN + (double)rand() / RAND_MAX * (D_MAX - D_MIN);
+#define IS_POW2(x) ((x != 0) && ((x & (~x + 1)) == x))
+
+// Generates random number in range
+#define randd(_MIN, _MAX) _MIN + (double)rand() / RAND_MAX * (_MAX - _MIN);
 
 static double* gen_random_nums(const unsigned int num_vals)
 {
     double* restrict arr = (double*) calloc(num_vals, sizeof(double));
     for (unsigned int i = 0; i < num_vals; i++)
     {
-        arr[i] = randd();
+        arr[i] = randd(D_MIN, D_MAX);
     }
     return arr;
 }
@@ -60,7 +63,7 @@ int rand_test_ddtable()
     double* keys = gen_random_nums(NUM_KEYS);
     double* vals = gen_random_nums(NUM_KEYS);
 
-    ddtable_t my_table = new_ddtable(NUM_KEYS*20, DDTABLE_SUM_HASH);
+    ddtable_t my_table = new_ddtable(NUM_KEYS*20, DDTABLE_SPOOKY_HASH, DDTABLE_STATIC_SIZE);
 
     // Used to prevent ifs from being optimized out
     int num_errors = 0;
@@ -103,7 +106,7 @@ int exp_test_ddtable()
     double* restrict keys =  sample_rand_nums(100, random_key_sample, 10);
     double* restrict vals = (double*) calloc(NUM_KEYS, sizeof(double));
     
-    ddtable_t ddtable = new_ddtable(NUM_KEYS*10, DDTABLE_SPOOKY_HASH);
+    ddtable_t ddtable = new_ddtable(NUM_KEYS*10, DDTABLE_SPOOKY_HASH, DDTABLE_STATIC_SIZE);
 
     unsigned int num_hits = 0;
     unsigned int num_misses = 0;
@@ -140,7 +143,7 @@ int exp_test_ddtable()
 
 static int nonrand_test_ddtable()
 {
-    ddtable_t my_table = new_ddtable(10, DDTABLE_SPOOKY_HASH);
+    ddtable_t my_table = new_ddtable(10, DDTABLE_SPOOKY_HASH, DDTABLE_STATIC_SIZE_POW2);
 
     const unsigned int num_vals = 4;
     double vals[4] = {4.5, 5.5, 1.0, 22.23};
@@ -156,31 +159,72 @@ static int nonrand_test_ddtable()
     return EXIT_SUCCESS;
 }
 
+/* TODO: Add checks for <stddarg.h>
+#ifndef NDEBUG
+#define aprintf(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define arprintf(...) do {} while(0)
+#endif
+*/
+
 #ifndef NUM_KEYS
 #define NUM_KEYS 100
 #endif
 
+#define NUM_FXNS 5
+#define NUM_BEHAVIOURS 2
+
+static const ddtable_hash_fxn hash_fxns[NUM_FXNS] = 
+{
+    DDTABLE_SUM_HASH,
+    DDTABLE_SPOOKY_HASH,
+    DDTABLE_MURMUR3_HASH,
+    DDTABLE_XX_HASH,
+    DDTABLE_CRC32_HASH,
+};
+
+static const char* hash_fxn_names[NUM_FXNS] = 
+{
+    "DDTABLE_SUM_HASH\0",
+    "DDTABLE_SPOOKY_HASH\0",
+    "DDTABLE_MURMUR3_HASH\0",
+    "DDTABLE_XX_HASH\0",
+    "DDTABLE_CRC32_HASH\0",
+};
+
+static const ddtable_size size_behaviours[NUM_BEHAVIOURS] =
+{
+    DDTABLE_STATIC_SIZE,
+    DDTABLE_STATIC_SIZE_POW2,
+};
+
+static const char* size_behaviour_names[NUM_BEHAVIOURS] =
+{
+    "DDTABLE_STATIC_SIZE\0",
+    "DDTABLE_STATIC_SIZE_POW2\0",
+};
+
 static int check_creation()
 {
-    // Test creation with DDTABLE_SPOOKY_HASH
-    ddtable_t ddtable = new_ddtable(NUM_KEYS, DDTABLE_SUM_HASH);
-    assert(ddtable != NULL);
-    free_ddtable(ddtable);
-
-    // Test creation with DDTABLE_SPOOKY_HASH
-    ddtable = new_ddtable(NUM_KEYS, DDTABLE_SPOOKY_HASH);
-    assert(ddtable != NULL);
-    free_ddtable(ddtable);
-
-    // Test creation with DDTABLE_MUMUR3_HASH
-    ddtable = new_ddtable(NUM_KEYS, DDTABLE_MURMUR3_HASH);
-    assert(ddtable != NULL);
-    free_ddtable(ddtable);
-
-    // Test creation with DDTABLE_MUMUR3_HASH
-    ddtable = new_ddtable(NUM_KEYS, DDTABLE_XX_HASH);
-    assert(ddtable != NULL);
-    free_ddtable(ddtable);    
+    ddtable_t ddtable = NULL;
+    
+    for (unsigned int i = 0; i < NUM_FXNS; i++)
+    {
+        for (unsigned int j = 0; j < NUM_BEHAVIOURS; j++)
+        {
+            ddtable = new_ddtable(NUM_KEYS, hash_fxns[i], size_behaviours[j]);
+            #ifndef NDEBUG
+            fprintf(
+                stderr,
+                "Testing table creation using %s fxn and %s size behaviour.\n",
+                hash_fxn_names[i],
+                size_behaviour_names[j]
+            );
+            #endif
+            assert(ddtable != NULL && "Failed creating ddtable.");
+            free_ddtable(ddtable);
+        }
+    }
 
     return EXIT_SUCCESS;
 }

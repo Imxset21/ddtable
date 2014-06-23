@@ -12,23 +12,32 @@
 typedef struct ddtable *ddtable_t;
 
 //! Supported hash function types
-enum ddtable_hash_fxn 
+typedef enum ddtable_hash_fxn 
 {
     DDTABLE_SUM_HASH,     //! Worst hash possible.
     DDTABLE_SPOOKY_HASH,  //! Fast hash with low collisions.
     DDTABLE_MURMUR3_HASH, //! Fast hash with low collisions.
-    DDTABLE_XX_HASH       //! Fastest hash with low collissions.
-};
+    DDTABLE_XX_HASH,      //! Faster hash with ok collisions.
+    DDTABLE_CRC32_HASH,   //! Hardware-accelerated hash with ok collisions.
+} ddtable_hash_fxn;
+
+//! Supported size behavior
+typedef enum ddtable_size
+{
+    DDTABLE_STATIC_SIZE,      //! Standard static-sized hash table.
+    DDTABLE_STATIC_SIZE_POW2, //! Static-sized hash table, rounded to nearest largest power of 2.
+} ddtable_size;
 
 /**
    Initializes a new ddtable with given hash function.
 
    @param[in] num_keys Number of initial keys.
    @param[in] fxn_type Type of hash function to use.
+   @param[in] size Size behaviour (static, power of 2, etc.).
    
    @returns new ddtable
  */
-extern ddtable_t new_ddtable(const uint64_t num_keys, enum ddtable_hash_fxn fxn_type);
+extern ddtable_t new_ddtable(const uint64_t num_keys, ddtable_hash_fxn fxn_type, ddtable_size size);
 
 /**
    Deletes an existing ddtable.

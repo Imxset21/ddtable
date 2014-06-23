@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.6])
 AC_INIT([ddtable], [1.0], [pr273@cornell.edu])
 AM_INIT_AUTOMAKE
 LT_PREREQ([2.2])
@@ -18,8 +18,6 @@ AC_PROG_CC_C_O
 # AC_PROG_RANLIB - Not needed since we're using libtool
 AC_PROG_INSTALL
 
-# Sets flags
-CFLAGS="-std=c99 -O3 -Wall -Wextra -Wpedantic"
 
 # Checks for (optional) libraries.
 have_math=no
@@ -41,6 +39,20 @@ if test "x${have_math}" = xno; then
    Unable to find math.h on this system.
    Building tests without math.h.
    -------------------------------------])
+fi
+
+have_x86intrin=no
+AC_CHECK_HEADERS([x86intrin.h], [have_x86intrin=yes], [])
+
+if test "x${have_x86intrin}" = xno; then
+   AC_MSG_WARN([
+   -------------------------------------
+   Unable to find x86intrin.h on this system.
+   Building crc32 without x86intrin.h.
+   -------------------------------------])
+   CFLAGS="-std=c99 -O3 -Wall -Wextra -Wpedantic"
+else
+   CFLAGS="-std=c99 -O3 -msse4.2 -Wall -Wextra -Wpedantic"
 fi
 
 # Checks for compiler characteristics.

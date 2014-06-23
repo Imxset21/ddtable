@@ -89,20 +89,24 @@ int rand_test_ddtable()
     // Create hash tables using different functions
     ddtable_t curr_hash_table = NULL;
 
-    curr_hash_table = new_ddtable(cache_size, DDTABLE_SUM_HASH);
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_SUM_HASH, DDTABLE_STATIC_SIZE);
     puts("Stats for sum hash table:");
     test_rand_hash(curr_hash_table, keys, vals);
 
-    curr_hash_table = new_ddtable(cache_size, DDTABLE_SPOOKY_HASH);
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_SPOOKY_HASH, DDTABLE_STATIC_SIZE);
     puts("Stats for spooky hash table:");
     test_rand_hash(curr_hash_table, keys, vals);
 
-    curr_hash_table = new_ddtable(cache_size, DDTABLE_MURMUR3_HASH);
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_MURMUR3_HASH, DDTABLE_STATIC_SIZE);
     puts("Stats for Murmur3 hash table:");
     test_rand_hash(curr_hash_table, keys, vals);
 
-    curr_hash_table = new_ddtable(cache_size, DDTABLE_XX_HASH);
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_XX_HASH, DDTABLE_STATIC_SIZE);
     puts("Stats for XX hash table:");
+    test_rand_hash(curr_hash_table, keys, vals);
+
+    curr_hash_table = new_ddtable(cache_size, DDTABLE_CRC32_HASH, DDTABLE_STATIC_SIZE);
+    puts("Stats for CRC32 hash table:");
     test_rand_hash(curr_hash_table, keys, vals);
     
     // Cleanup
