@@ -16,7 +16,7 @@
 #elif HAVE_STDINT_H
 #include <stdint.h>
 #else
-#error crc32.c requires a definition of uint32_t, uint64_t
+#error crc32.c requires a definition of uint32_t and uint64_t
 #endif
 
 #if HAVE_X86INTRIN_H

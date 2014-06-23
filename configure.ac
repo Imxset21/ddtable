@@ -10,6 +10,7 @@ AC_CONFIG_SRCDIR([src/test_ddtable_create.c])
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
+AM_SILENT_RULES([yes])
 
 # Checks for programs.
 AC_LANG([C])
