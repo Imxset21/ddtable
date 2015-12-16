@@ -45,7 +45,7 @@ struct ddtable
 
 // TODO: Support other hash functions?
 //! Hash function using spooky 64-bit hash
-static inline uint64_t dd_hash(const double key, const uint_fast32_t size)
+static inline uint_fast32_t dd_hash(const double key, const uint_fast32_t size)
 {
     #if DDTABLE_ENFORCE_POW2
     // Can use faster & instead of % if we enforce power of 2 size.
@@ -56,7 +56,7 @@ static inline uint64_t dd_hash(const double key, const uint_fast32_t size)
 }
 
 //! Gets the next power of two from the given number (e.g. 30 -> 32)
-static uint64_t next_power_of_two(uint_fast32_t n)
+static uint_fast32_t next_power_of_two(uint_fast32_t n)
 {
     n--;
     n |= n >> 1;

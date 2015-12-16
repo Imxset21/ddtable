@@ -3,9 +3,17 @@ add_executable(test_ddtable test_ddtable.c)
 set_property(TARGET test_ddtable PROPERTY C_STANDARD 99)
 target_link_libraries(test_ddtable ddtablelib)
 
+add_executable(test_spooky_hash test_spooky_hash.c)
+set_property(TARGET test_spooky_hash PROPERTY C_STANDARD 99)
+target_link_libraries(test_spooky_hash ddtablelib)
+
 # Add tests
-add_test(test_ddtable_test
+add_test(ddtable_test
   test_ddtable
+  WORKING_DIRECTORY tests)
+
+add_test(spooky_hash_test
+  test_spooky_hash
   WORKING_DIRECTORY tests)
 
 # Do coverage with kcov, if available: $make kcov
