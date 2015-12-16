@@ -17,13 +17,13 @@
 struct ddtable
 {
     //! Absolute number of key-value pairs
-    uint64_t num_kv_pairs;
+    uint_fast32_t num_kv_pairs;
     //! Internal size used for hashing
-    uint64_t size;
+    uint_fast32_t size;
     //! Fast-checker for key existence
     char* ddtable_RESTRICT exists;     
     //! Single-alloc array for kv pairs
-    double* ddtable_RESTRICT key_vals;
+    double key_vals[];
 };
 
 //! Default NULL value (not a value) for our table
@@ -45,7 +45,7 @@ struct ddtable
 
 // TODO: Support other hash functions?
 //! Hash function using spooky 64-bit hash
-static inline uint64_t dd_hash(const double key, const uint64_t size)
+static inline uint64_t dd_hash(const double key, const uint_fast32_t size)
 {
     #if DDTABLE_ENFORCE_POW2
     // Can use faster & instead of % if we enforce power of 2 size.
@@ -56,7 +56,7 @@ static inline uint64_t dd_hash(const double key, const uint64_t size)
 }
 
 //! Gets the next power of two from the given number (e.g. 30 -> 32)
-static uint64_t nextPowerOf2(uint64_t n)
+static uint64_t next_power_of_two(uint_fast32_t n)
 {
     n--;
     n |= n >> 1;
@@ -64,38 +64,43 @@ static uint64_t nextPowerOf2(uint64_t n)
     n |= n >> 4;
     n |= n >> 8;
     n |= n >> 16;
-    n |= n >> 32;
     n++;
     return n;
 }
 
-ddtable_t new_ddtable(const uint64_t num_keys)
+ddtable_t ddtable_new(const uint_fast32_t num_keys)
 {
-    ddtable_t new_ht = (ddtable_t) malloc(sizeof(struct ddtable));
-    assert(new_ht);
-
     // Set the absolute number of key-value pairs, and also
     // set the internal size depending on whether we enforce
     // "power of 2"-sized tables.
-    #if DDTABLE_ENFORCE_POW2
+#if DDTABLE_ENFORCE_POW2
     // This minus one trick is necessary for &: http://goo.gl/FlcEb0
-    new_ht->size = nextPowerOf2(num_keys) - 1;
-    new_ht->num_kv_pairs = new_ht->size + 1;
-    #else
-    new_ht->num_kv_pairs = num_keys;
-    new_ht->size = num_keys;
-    #endif
+    const uint_fast32_t ht_size = next_power_of_two(num_keys) - 1;
+    const uint_fast32_t ht_num_kv_pairs = ht_size + 1;
+#else
+    const uint_fast32_t ht_size = num_keys;
+    const uint_fast32_t ht_num_kv_pairs = num_keys;
+#endif
 
-    // Allocate space for key-value store and existance arrays.
-    new_ht->key_vals = (double*) calloc(new_ht->num_kv_pairs*2, sizeof(double));
-    assert(new_ht->key_vals);
-    new_ht->exists = (char*) calloc(new_ht->num_kv_pairs, sizeof(char));
+    ddtable_t new_ht = malloc(sizeof(struct ddtable) +
+                              (sizeof(double) * ht_num_kv_pairs * 2));
+    assert(new_ht);
+    new_ht->size = ht_size;
+    new_ht->num_kv_pairs = ht_num_kv_pairs;
+
+#ifndef NDEBUG
+    fprintf(stderr, "Created new ddtable %p with size %"PRIuFAST32"\n",
+            (void*) new_ht, new_ht->size);
+#endif
+
+    // Allocate space for existance array
+    new_ht->exists = calloc(new_ht->num_kv_pairs, sizeof(char));
     assert(new_ht->exists);
 
     return new_ht;
 }
 
-void free_ddtable(ddtable_t ddtable)
+void ddtable_free(ddtable_t ddtable)
 {
     if (ddtable != NULL)
     {
@@ -104,45 +109,39 @@ void free_ddtable(ddtable_t ddtable)
             free(ddtable->exists);
         }
         
-        if (ddtable->key_vals != NULL)
-        {
-            free(ddtable->key_vals);
-        }
-        
         free(ddtable);
     }
 }
 
-double get_val(ddtable_t ddtable, const double key)
+double ddtable_get_val(ddtable_t ddtable, const double key)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint_fast32_t indx = dd_hash(key, ddtable->size);
 
     return (ddtable->exists[indx]) ? 
-        ddtable->key_vals[(2*indx)+1] : (double) DDTABLE_NULL_VAL;
+        ddtable->key_vals[(2 * indx) + 1] : (double) DDTABLE_NULL_VAL;
 }
 
-double get_check_key(ddtable_t ddtable, const double key)
+double ddtable_get_check_key(ddtable_t ddtable, const double key)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint_fast32_t indx = dd_hash(key, ddtable->size);
 
-    // If the key exists AND it's memcmp-identical to the given one,
+    // If the key exists AND it's equal to the given one,
     // then return the value. Otherwise, return DDTABLE_NULL_VAL
-    return (ddtable->exists[indx] && 
-            0 == memcmp(&ddtable->key_vals[(2*indx)], &key, sizeof(double))) 
-        ? ddtable->key_vals[(2*indx)+1] : (double) DDTABLE_NULL_VAL;
+    return (ddtable->exists[indx] && ddtable->key_vals[2 * indx] == key)
+        ? ddtable->key_vals[(2 * indx) + 1] : (double) DDTABLE_NULL_VAL;
 }
 
-int set_val(ddtable_t ddtable, const double key, const double val)
+int ddtable_set_val(ddtable_t ddtable, const double key, const double val)
 {
-    const uint64_t indx = dd_hash(key, ddtable->size);
+    const uint_fast32_t indx = dd_hash(key, ddtable->size);
 
-    if(ddtable->exists[indx])
+    if (ddtable->exists[indx])
     {
         return 1; // Collision
     } else {
         ddtable->exists[indx] = '1';
-        ddtable->key_vals[2*indx] = key;
-        ddtable->key_vals[(2*indx)+1] = val;
+        ddtable->key_vals[2 * indx] = key;
+        ddtable->key_vals[(2 * indx) + 1] = val;
         return 0;
     }
 }

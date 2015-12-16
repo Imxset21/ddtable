@@ -42,6 +42,7 @@ aux_source_directory(src/ SOURCE_FILES)
 # Make a static library out of the source files
 add_library(ddtablelib STATIC ${SOURCE_FILES})
 target_include_directories(ddtablelib PUBLIC src)
+target_link_libraries(ddtablelib m)
 set_property(TARGET ddtablelib PROPERTY C_STANDARD 99)
 
 # Check whether building Debug vs Release build
