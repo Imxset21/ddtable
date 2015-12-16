@@ -1,17 +1,10 @@
-#ifndef LIBDDTABLE_H_INCLUDED
-#define LIBDDTABLE_H_INCLUDED
+#ifndef LIBDDTABLE_H
+#define LIBDDTABLE_H
 
 #include <stdint.h>
 
 //! Hash table for double-valued key-value pairs.
-typedef struct ddtable
-{
-    uint64_t num_kv_pairs;     //! Absolute number of key-value pairs
-    uint64_t size;             //! Internal size used for hashing
-    char* restrict exists;     //! Fast-checker for key existence
-    double* restrict key_vals; //! Single-alloc array for kv pairs
-
-} *ddtable_t;
+typedef struct ddtable *ddtable_t;
 
 extern ddtable_t new_ddtable(const uint64_t num_keys);
 

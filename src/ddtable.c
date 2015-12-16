@@ -1,23 +1,33 @@
-#if HAVE_CONFIG_H
-#include <config.h>
+#if HAVE_DDTABLE_CONFIG_H
+#include "ddtable_config.h"
+#else
+#include "../build/config/ddtable_config.h"
 #endif
 
-#include <libddtable.h>
-#include <spooky-c.h>
+#include "libddtable.h"
+#include "spooky-c.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-
-#if HAVE_STDINT_H
 #include <stdint.h>
-#elif HAVE_INTTYPES_H
 #include <inttypes.h>
-#endif
+
+struct ddtable
+{
+    //! Absolute number of key-value pairs
+    uint64_t num_kv_pairs;
+    //! Internal size used for hashing
+    uint64_t size;
+    //! Fast-checker for key existence
+    char* ddtable_RESTRICT exists;     
+    //! Single-alloc array for kv pairs
+    double* ddtable_RESTRICT key_vals;
+};
 
 //! Default NULL value (not a value) for our table
-#define DDTABLE_NULL_VAL 0xdeadbeef
+#define DDTABLE_NULL_VAL 0
 
 //! Checks if x is a power of 2
 #define IS_POW2(x) ((x != 0) && ((x & (~x + 1)) == x))

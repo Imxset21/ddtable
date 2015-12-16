@@ -7,3 +7,6 @@
 *.ii
 *.la
 *.lo
+
+# Build directory
+build/

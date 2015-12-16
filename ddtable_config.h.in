@@ -1,0 +1,33 @@
+#ifndef DDTABLE_CONFIG_H
+#define DDTABLE_CONFIG_H
+
+#include "ddtable_compiler_detection.h"
+
+/* Platform-specific flags */
+#ifndef WIN32
+#cmakedefine WIN32
+#endif
+#ifndef UNIX
+#cmakedefine UNIX
+#endif
+
+/* Compiler-specific flags */
+#ifndef MSVC
+#cmakedefine MSVC
+#endif
+
+/* Windows DLLs require explicit exporting/importing of API interfaces. */
+#ifdef MSVC
+#define DllExport __declspec( dllexport )
+#define DllImport __declspec( dllimport )
+#else
+#define DllExport 
+#define DllImport 
+#endif /* MSVC */
+
+/* MSVC doesn't recognize 'or/and' operators */
+#ifdef MSVC
+#include <iso646.h>
+#endif
+
+#endif /* TAKE10_CONFIG_H */
